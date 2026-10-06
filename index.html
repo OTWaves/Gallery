@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>[ØT\W] // ARCHIVE</title>
+  <style>
+    body { background: #070809; color: #eee; font-family: -apple-system, monospace; margin: 0; padding: 24px 16px; display: flex; flex-direction: column; align-items: center; }
+    header { width: 100%; max-width: 900px; border-bottom: 1px solid #1f2328; padding-bottom: 14px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; }
+    h1 { font-size: 13px; letter-spacing: 2px; margin: 0; color: #fff; }
+    .badge { font-size: 11px; color: #666; border: 1px solid #222; padding: 2px 6px; border-radius: 4px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; width: 100%; max-width: 900px; }
+    .card { background: #0d1117; border: 1px solid #1b1f24; border-radius: 6px; overflow: hidden; display: flex; flex-direction: column; }
+    img { width: 100%; height: auto; display: block; aspect-ratio: 9/16; object-fit: cover; background: #000; }
+    .caption { font-size: 11px; color: #555; padding: 8px 12px; border-top: 1px solid #161b22; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1 id="title">[ØT\W] // ARCHIVE</h1>
+    <div class="badge">IPAD GLSL 60FPS</div>
+  </header>
+  <div class="grid" id="gallery"></div>
+  <script>
+    const p = new URLSearchParams(window.location.search).get('id') || 'DEFAULT';
+    document.getElementById('title').innerText = `[ØT\\W] // ${p.replace(/_/g, ' ')}`;
+    const g = document.getElementById('gallery');
+    for (let i = 1; i <= 4; i++) {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `<img src="${p}/still_0${i}.png" alt="Frame ${i}" loading="lazy"><div class="caption">FRAME 0${i} // 1080x1920</div>`;
+      g.appendChild(card);
+    }
+  </script>
+</body>
+</html>
