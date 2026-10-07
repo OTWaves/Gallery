@@ -1,32 +1,244 @@
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>[ØT\W] // ARCHIVE</title>
   <style>
-    body { background: #070809; color: #eee; font-family: -apple-system, monospace; margin: 0; padding: 24px 16px; display: flex; flex-direction: column; align-items: center; }
-    header { width: 100%; max-width: 900px; border-bottom: 1px solid #1f2328; padding-bottom: 14px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; }
-    h1 { font-size: 13px; letter-spacing: 2px; margin: 0; color: #fff; }
-    .badge { font-size: 11px; color: #666; border: 1px solid #222; padding: 2px 6px; border-radius: 4px; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; width: 100%; max-width: 900px; }
-    .card { background: #0d1117; border: 1px solid #1b1f24; border-radius: 6px; overflow: hidden; display: flex; flex-direction: column; }
-    img { width: 100%; height: auto; display: block; aspect-ratio: 9/16; object-fit: cover; background: #000; }
-    .caption { font-size: 11px; color: #555; padding: 8px 12px; border-top: 1px solid #161b22; }
+    :root {
+      --bg: #070809;
+      --card-bg: #0c0f13;
+      --border: #1a1e24;
+      --text-main: #f0f3f6;
+      --text-muted: #6e7681;
+    }
+    * { box-sizing: border-box; }
+    body {
+      background: var(--bg);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Mono", monospace;
+      margin: 0;
+      padding: 24px 16px 60px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      -webkit-font-smoothing: antialiased;
+    }
+    header {
+      width: 100%;
+      max-width: 1080px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 16px;
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .brand-title {
+      font-size: 13px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+    .badge {
+      font-size: 11px;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      padding: 3px 8px;
+      border-radius: 4px;
+      letter-spacing: 1px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 16px;
+      width: 100%;
+      max-width: 1080px;
+    }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      cursor: pointer;
+      position: relative;
+      transition: transform 0.15s ease, border-color 0.15s ease;
+    }
+    .card:hover {
+      border-color: #30363d;
+      transform: translateY(-2px);
+    }
+    .img-wrap {
+      position: relative;
+      width: 100%;
+      background: #000;
+    }
+    img {
+      width: 100%;
+      height: auto;
+      display: block;
+      object-fit: contain;
+    }
+    .watermark-tag {
+      position: absolute;
+      bottom: 8px;
+      right: 10px;
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      color: rgba(255, 255, 255, 0.45);
+      font-weight: 600;
+      pointer-events: none;
+      background: rgba(0, 0, 0, 0.5);
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+    .caption {
+      font-size: 11px;
+      color: var(--text-muted);
+      padding: 10px 14px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+    }
+    /* LIGHTBOX / FULL SIZE MODAL */
+    #modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(4, 5, 6, 0.96);
+      backdrop-filter: blur(10px);
+      z-index: 9999;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      padding: 16px;
+    }
+    #modal.open { display: flex; }
+    #modal img {
+      max-width: 95vw;
+      max-height: 82vh;
+      width: auto;
+      height: auto;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+    }
+    #modal .controls {
+      margin-top: 16px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+    #modal a, #modal button {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      padding: 8px 16px;
+      font-size: 11px;
+      letter-spacing: 1px;
+      border-radius: 4px;
+      cursor: pointer;
+      text-decoration: none;
+      font-family: inherit;
+    }
   </style>
 </head>
 <body>
+
   <header>
-    <h1 id="title">[ØT\W] // ARCHIVE</h1>
-    <div class="badge">IPAD GLSL 60FPS</div>
+    <div class="brand-title" id="title">[ØT\W] // ARCHIVE</div>
+    <div class="badge">ORIGINAL RESOLUTION</div>
   </header>
+
   <div class="grid" id="gallery"></div>
+
+  <!-- Modal pełnoekranowy -->
+  <div id="modal" onclick="closeModal(event)">
+    <img id="modal-img" src="" alt="Full Resolution Still">
+    <div class="controls">
+      <a id="modal-download" href="" target="_blank" download>DOWNLOAD FULL-RES</a>
+      <button onclick="forceCloseModal()">CLOSE [ESC]</button>
+    </div>
+  </div>
+
   <script>
-    const p = new URLSearchParams(window.location.search).get('id') || 'DEFAULT';
-    document.getElementById('title').innerText = `[ØT\\W] // ${p.replace(/_/g, ' ')}`;
-    const g = document.getElementById('gallery');
-    for (let i = 1; i <= 4; i++) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const sessionID = urlParams.get('id') || 'FLUX_Vessel';
+    document.getElementById('title').innerText = `[ØT\\W] // ${sessionID.replace(/_/g, ' ')}`;
+
+    // Automatyczna obsługa ścieżki (zabezpieczenie przed brakiem ukośnika w URL)
+    let basePath = window.location.pathname;
+    if (!basePath.endsWith('/')) {
+      basePath += '/';
+    }
+
+    const gallery = document.getElementById('gallery');
+    const MAX_FRAMES = 12;
+    const EXTENSIONS = ['png', 'PNG', 'jpg', 'JPG', 'jpeg', 'webp'];
+
+    for (let i = 1; i <= MAX_FRAMES; i++) {
+      const pad = i < 10 ? `0${i}` : `${i}`;
+      const baseName = `still_${pad}`;
+
       const card = document.createElement('div');
       card.className = 'card';
-      card.innerHTML = `<img src="${p}/still_0${i}.png" alt="Frame ${i}" loading="lazy"><div class="caption">FRAME 0${i} // 1080x1920</div>`;
-      g.appendChild(card);
+
+      const imgWrap = document.createElement('div');
+      imgWrap.className = 'img-wrap';
+
+      const img = document.createElement('img');
+      img.alt = `FRAME ${pad}`;
+      img.loading = 'lazy';
+
+      let extIndex = 0;
+      function tryNextSource() {
+        if (extIndex < EXTENSIONS.length) {
+          img.src = `${basePath}${sessionID}/${baseName}.${EXTENSIONS[extIndex]}`;
+          extIndex++;
+        } else {
+          card.remove(); // Jeśli kadr nie istnieje, usuwa puste miejsce
+        }
+      }
+
+      img.onerror = tryNextSource;
+      tryNextSource();
+
+      card.onclick = () => openModal(img.src);
+
+      const watermark = document.createElement('div');
+      watermark.className = 'watermark-tag';
+      watermark.innerText = '[ØT\\W]';
+
+      const caption = document.createElement('div');
+      caption.className = 'caption';
+      caption.innerHTML = `<span>FRAME ${pad}</span><span>VIEW FULL-RES</span>`;
+
+      imgWrap.appendChild(img);
+      imgWrap.appendChild(watermark);
+      card.appendChild(imgWrap);
+      card.appendChild(caption);
+      gallery.appendChild(card);
     }
+
+    function openModal(src) {
+      const modal = document.getElementById('modal');
+      const modalImg = document.getElementById('modal-img');
+      const dlBtn = document.getElementById('modal-download');
+      modalImg.src = src;
+      dlBtn.href = src;
+      modal.classList.add('open');
+    }
+    function closeModal(e) {
+      if (e.target.id === 'modal') forceCloseModal();
+    }
+    function forceCloseModal() {
+      document.getElementById('modal').classList.remove('open');
+    }
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') forceCloseModal();
+    });
   </script>
 </body>
 </html>
