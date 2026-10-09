@@ -34,12 +34,34 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
     }
     .brand-title {
       font-size: 13px;
       letter-spacing: 2px;
       text-transform: uppercase;
       font-weight: 600;
+    }
+    .back-btn {
+      font-size: 11px;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      padding: 4px 10px;
+      border-radius: 4px;
+      letter-spacing: 1px;
+      text-decoration: none;
+      transition: all 0.15s ease;
+      background: var(--card-bg);
+    }
+    .back-btn:hover {
+      color: #fff;
+      border-color: #30363d;
     }
     .badge {
       font-size: 11px;
@@ -66,12 +88,13 @@
       cursor: pointer;
       position: relative;
       transition: transform 0.15s ease, border-color 0.15s ease;
+      text-decoration: none;
+      color: inherit;
     }
     .card:hover {
       border-color: #30363d;
       transform: translateY(-2px);
     }
-    /* Zunifikowany format klatek: eliminuje skoki wysokości */
     .img-wrap {
       position: relative;
       width: 100%;
@@ -110,9 +133,14 @@
       display: flex;
       justify-content: space-between;
       margin-top: auto;
+      letter-spacing: 0.5px;
+    }
+    .caption .action {
+      color: #9da7b3;
+      font-weight: 500;
     }
 
-    /* FULLSCREEN LIGHTBOX */
+    /* FULLSCREEN LIGHTBOX DLA POJEDYNCZEGO PROJEKTU */
     #modal {
       display: none;
       position: fixed;
@@ -186,20 +214,21 @@
 <body>
 
   <header>
-    <div class="brand-title" id="title">[ØT\W] // ARCHIVE</div>
-    <div class="badge">FULL RES ARCHIVE</div>
+    <div class="header-left">
+      <a id="back-nav" href="#" class="back-btn" style="display:none;">← ALL PROJECTS</a>
+      <div class="brand-title" id="title">[ØT\W] // ARCHIVE</div>
+    </div>
+    <div class="badge" id="badge-info">COLLECTIONS</div>
   </header>
 
   <div class="grid" id="gallery"></div>
 
-  <!-- Fullscreen Modal z nawigacją -->
+  <!-- Fullscreen Modal -->
   <div id="modal">
     <div class="nav-btn nav-prev" onclick="navPrev()">‹</div>
     <div class="nav-btn nav-next" onclick="navNext()">›</div>
-
     <img id="modal-img" src="" alt="Full-Res Still">
-    <div class="modal-meta" id="modal-counter">FRAME 01 // 09</div>
-
+    <div class="modal-meta" id="modal-counter">FRAME 01</div>
     <div class="controls">
       <a id="modal-download" href="" target="_blank" download>DOWNLOAD FULL-RES</a>
       <button onclick="closeModal()">CLOSE [ESC]</button>
@@ -207,140 +236,205 @@
   </div>
 
   <script>
-    const urlParams = new URLSearchParams(window.location.search);
-    const sessionID = urlParams.get('id') || 'FLUX_Vessel';
-    document.getElementById('title').innerText = `[ØT\\W] // ${sessionID.replace(/_/g, ' ')}`;
+    /* ==============================================================
+       LISTA TWOICH PROJEKTÓW:
+       Aby dodać kolejny projekt w przyszłości, po prostu dopisz 
+       jego nazwę folderu w nowej linijce poniżej!
+       ============================================================== */
+    const PROJECTS = [
+      'FERROS_SundayBlooms',
+      'FLUX_Vessel',
+      // 'NOWY_PROJEKT', <-- tak prosto dodaje się kolejne
+    ];
+
+    const EXTENSIONS = ['png', 'PNG', 'jpg', 'JPG', 'jpeg', 'webp', 'png.jpg', 'png.PNG', 'png.jpeg', 'PNG.jpg'];
 
     let basePath = window.location.pathname;
     if (!basePath.endsWith('/')) basePath += '/';
 
+    const urlParams = new URLSearchParams(window.location.search);
+    const sessionID = urlParams.get('id');
+
     const gallery = document.getElementById('gallery');
-    const MAX_FRAMES = 12;
-    const EXTENSIONS = ['png', 'PNG', 'jpg', 'JPG', 'jpeg', 'webp'];
+    const titleEl = document.getElementById('title');
+    const badgeEl = document.getElementById('badge-info');
+    const backNav = document.getElementById('back-nav');
 
-    // Rejestr klatek w kolejności
-    const activeStills = [];
-    let currentIndex = 0;
+    // -------------------------------------------------------------
+    // TRYB 1: KATALOG GŁÓWNY (gdy URL to czysty: otwaves.github.io/Gallery/)
+    // -------------------------------------------------------------
+    if (!sessionID) {
+      titleEl.innerText = `[ØT\\W] // PROJECTS ARCHIVE`;
+      badgeEl.innerText = `${PROJECTS.length} COLLECTIONS`;
+      backNav.style.display = 'none';
 
-    for (let i = 1; i <= MAX_FRAMES; i++) {
-      const pad = i < 10 ? `0${i}` : `${i}`;
-      const baseName = `still_${pad}`;
+      PROJECTS.forEach(projId => {
+        const card = document.createElement('a');
+        card.className = 'card';
+        card.href = `${basePath}?id=${projId}`;
 
-      const card = document.createElement('div');
-      card.className = 'card';
+        const imgWrap = document.createElement('div');
+        imgWrap.className = 'img-wrap';
 
-      const imgWrap = document.createElement('div');
-      imgWrap.className = 'img-wrap';
+        const img = document.createElement('img');
+        img.className = 'thumb';
+        img.alt = projId;
+        img.loading = 'lazy';
 
-      const img = document.createElement('img');
-      img.className = 'thumb';
-      img.alt = `FRAME ${pad}`;
-      img.loading = 'lazy';
-
-      let extIndex = 0;
-      function tryNextSource() {
-        if (extIndex < EXTENSIONS.length) {
-          img.src = `${basePath}${sessionID}/${baseName}.${EXTENSIONS[extIndex]}`;
-          extIndex++;
-        } else {
-          card.remove();
+        // Ładuje miniaturę (still_01 z danego folderu)
+        let extIdx = 0;
+        function tryNextThumb() {
+          if (extIdx < EXTENSIONS.length) {
+            img.src = `${basePath}${projId}/still_01.${EXTENSIONS[extIdx]}`;
+            extIdx++;
+          }
         }
+        img.onerror = tryNextThumb;
+        tryNextThumb();
+
+        const watermark = document.createElement('div');
+        watermark.className = 'watermark-tag';
+        watermark.innerText = '[ØT\\W]';
+
+        const caption = document.createElement('div');
+        caption.className = 'caption';
+        caption.innerHTML = `<span>${projId.replace(/_/g, ' ')}</span><span class="action">ENTER [→]</span>`;
+
+        imgWrap.appendChild(img);
+        imgWrap.appendChild(watermark);
+        card.appendChild(imgWrap);
+        card.appendChild(caption);
+        gallery.appendChild(card);
+      });
+
+    // -------------------------------------------------------------
+    // TRYB 2: WIDOK POJEDYNCZEGO PROJEKTU (?id=NAZWA_PROJEKTU)
+    // -------------------------------------------------------------
+    } else {
+      titleEl.innerText = `[ØT\\W] // ${sessionID.replace(/_/g, ' ')}`;
+      badgeEl.innerText = `FULL RES ARCHIVE`;
+      backNav.style.display = 'inline-block';
+      backNav.href = basePath;
+
+      const MAX_FRAMES = 12;
+      const activeStills = [];
+      let currentIndex = 0;
+
+      for (let i = 1; i <= MAX_FRAMES; i++) {
+        const pad = i < 10 ? `0${i}` : `${i}`;
+        const baseName = `still_${pad}`;
+
+        const card = document.createElement('div');
+        card.className = 'card';
+
+        const imgWrap = document.createElement('div');
+        imgWrap.className = 'img-wrap';
+
+        const img = document.createElement('img');
+        img.className = 'thumb';
+        img.alt = `FRAME ${pad}`;
+        img.loading = 'lazy';
+
+        let extIndex = 0;
+        function tryNextSource() {
+          if (extIndex < EXTENSIONS.length) {
+            img.src = `${basePath}${sessionID}/${baseName}.${EXTENSIONS[extIndex]}`;
+            extIndex++;
+          } else {
+            card.remove();
+          }
+        }
+
+        img.onload = () => {
+          if (!activeStills.some(item => item.pad === pad)) {
+            activeStills.push({ pad: pad, src: img.src });
+            activeStills.sort((a, b) => parseInt(a.pad) - parseInt(b.pad));
+          }
+        };
+
+        img.onerror = tryNextSource;
+        tryNextSource();
+
+        card.onclick = () => {
+          const foundIdx = activeStills.findIndex(item => item.pad === pad);
+          if (foundIdx !== -1) openModalAt(foundIdx);
+        };
+
+        const watermark = document.createElement('div');
+        watermark.className = 'watermark-tag';
+        watermark.innerText = '[ØT\\W]';
+
+        const caption = document.createElement('div');
+        caption.className = 'caption';
+        caption.innerHTML = `<span>FRAME ${pad}</span><span class="action">VIEW FULL-RES</span>`;
+
+        imgWrap.appendChild(img);
+        imgWrap.appendChild(watermark);
+        card.appendChild(imgWrap);
+        card.appendChild(caption);
+        gallery.appendChild(card);
       }
 
-      img.onload = () => {
-        // Po udanym wczytaniu rejestrujemy klatkę do listy nawigacyjnej
-        if (!activeStills.some(item => item.pad === pad)) {
-          activeStills.push({ pad: pad, src: img.src });
-          activeStills.sort((a, b) => parseInt(a.pad) - parseInt(b.pad));
-        }
+      // MODAL / LIGHTBOX
+      const modal = document.getElementById('modal');
+      const modalImg = document.getElementById('modal-img');
+      const dlBtn = document.getElementById('modal-download');
+      const modalCounter = document.getElementById('modal-counter');
+
+      function openModalAt(index) {
+        if (!activeStills.length) return;
+        currentIndex = index;
+        renderModal();
+        modal.classList.add('open');
+      }
+
+      function renderModal() {
+        const item = activeStills[currentIndex];
+        modalImg.style.opacity = '0.4';
+        modalImg.src = item.src;
+        modalImg.onload = () => { modalImg.style.opacity = '1'; };
+        dlBtn.href = item.src;
+        modalCounter.innerText = `FRAME ${item.pad} // ${activeStills.length < 10 ? '0' + activeStills.length : activeStills.length}`;
+      }
+
+      window.navPrev = function() {
+        if (!activeStills.length) return;
+        currentIndex = (currentIndex - 1 + activeStills.length) % activeStills.length;
+        renderModal();
       };
 
-      img.onerror = tryNextSource;
-      tryNextSource();
-
-      card.onclick = () => {
-        const foundIdx = activeStills.findIndex(item => item.pad === pad);
-        if (foundIdx !== -1) openModalAt(foundIdx);
+      window.navNext = function() {
+        if (!activeStills.length) return;
+        currentIndex = (currentIndex + 1) % activeStills.length;
+        renderModal();
       };
 
-      const watermark = document.createElement('div');
-      watermark.className = 'watermark-tag';
-      watermark.innerText = '[ØT\\W]';
+      window.closeModal = function() {
+        modal.classList.remove('open');
+      };
 
-      const caption = document.createElement('div');
-      caption.className = 'caption';
-      caption.innerHTML = `<span>FRAME ${pad}</span><span>VIEW FULL-RES</span>`;
+      modal.onclick = (e) => {
+        if (e.target.id === 'modal') closeModal();
+      };
 
-      imgWrap.appendChild(img);
-      imgWrap.appendChild(watermark);
-      card.appendChild(imgWrap);
-      card.appendChild(caption);
-      gallery.appendChild(card);
+      document.addEventListener('keydown', (e) => {
+        if (!modal.classList.contains('open')) return;
+        if (e.key === 'ArrowRight') navNext();
+        if (e.key === 'ArrowLeft') navPrev();
+        if (e.key === 'Escape') closeModal();
+      });
+
+      let touchStartX = 0;
+      modal.addEventListener('touchstart', (e) => {
+        touchStartX = e.changedTouches[0].screenX;
+      }, { passive: true });
+
+      modal.addEventListener('touchend', (e) => {
+        const diff = e.changedTouches[0].screenX - touchStartX;
+        if (diff < -45) navNext();
+        if (diff > 45) navPrev();
+      }, { passive: true });
     }
-
-    const modal = document.getElementById('modal');
-    const modalImg = document.getElementById('modal-img');
-    const dlBtn = document.getElementById('modal-download');
-    const modalCounter = document.getElementById('modal-counter');
-
-    function openModalAt(index) {
-      if (!activeStills.length) return;
-      currentIndex = index;
-      renderModal();
-      modal.classList.add('open');
-    }
-
-    function renderModal() {
-      const item = activeStills[currentIndex];
-      modalImg.style.opacity = '0.4';
-      modalImg.src = item.src;
-      modalImg.onload = () => { modalImg.style.opacity = '1'; };
-      dlBtn.href = item.src;
-      modalCounter.innerText = `FRAME ${item.pad} // ${activeStills.length < 10 ? '0' + activeStills.length : activeStills.length}`;
-    }
-
-    function navPrev() {
-      if (!activeStills.length) return;
-      currentIndex = (currentIndex - 1 + activeStills.length) % activeStills.length;
-      renderModal();
-    }
-
-    function navNext() {
-      if (!activeStills.length) return;
-      currentIndex = (currentIndex + 1) % activeStills.length;
-      renderModal();
-    }
-
-    function closeModal() {
-      modal.classList.remove('open');
-    }
-
-    // Obsługa kliknięcia poza modalem
-    modal.onclick = (e) => {
-      if (e.target.id === 'modal') closeModal();
-    };
-
-    // Nawigacja klawiaturą
-    document.addEventListener('keydown', (e) => {
-      if (!modal.classList.contains('open')) return;
-      if (e.key === 'ArrowRight') navNext();
-      if (e.key === 'ArrowLeft') navPrev();
-      if (e.key === 'Escape') closeModal();
-    });
-
-    // Obsługa gestów Swipe na iPadzie
-    let touchStartX = 0;
-    let touchEndX = 0;
-
-    modal.addEventListener('touchstart', (e) => {
-      touchStartX = e.changedTouches[0].screenX;
-    }, { passive: true });
-
-    modal.addEventListener('touchend', (e) => {
-      touchEndX = e.changedTouches[0].screenX;
-      if (touchEndX < touchStartX - 45) navNext(); // Przesunięcie w lewo -> Dalej
-      if (touchEndX > touchStartX + 45) navPrev(); // Przesunięcie w prawo -> Wstecz
-    }, { passive: true });
   </script>
 </body>
 </html>
