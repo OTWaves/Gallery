@@ -30,7 +30,7 @@
       max-width: 1080px;
       border-bottom: 1px solid var(--border);
       padding-bottom: 16px;
-      margin-bottom: 24px;
+      margin-bottom: 18px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -71,6 +71,49 @@
       border-radius: 4px;
       letter-spacing: 1px;
     }
+
+    /* FILTRY KATEGORII I PODGRUP */
+    .filter-wrap {
+      width: 100%;
+      max-width: 1080px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 22px;
+    }
+    .filter-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .filter-btn {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      font-family: inherit;
+      font-size: 11px;
+      letter-spacing: 1.2px;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .filter-btn:hover {
+      color: var(--text-main);
+      border-color: #30363d;
+    }
+    .filter-btn.active {
+      color: #070809;
+      background: var(--text-main);
+      border-color: var(--text-main);
+      font-weight: 600;
+    }
+    .sub-row .filter-btn {
+      font-size: 10px;
+      padding: 4px 10px;
+      opacity: 0.85;
+    }
+
     .grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -125,6 +168,19 @@
       padding: 2px 6px;
       border-radius: 3px;
     }
+    .cat-tag {
+      position: absolute;
+      top: 8px;
+      left: 10px;
+      font-size: 9px;
+      letter-spacing: 1.2px;
+      color: rgba(255, 255, 255, 0.65);
+      background: rgba(0, 0, 0, 0.65);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      padding: 2px 6px;
+      border-radius: 3px;
+      pointer-events: none;
+    }
     .caption {
       font-size: 11px;
       color: var(--text-muted);
@@ -132,15 +188,27 @@
       border-top: 1px solid var(--border);
       display: flex;
       justify-content: space-between;
+      align-items: center;
+      gap: 8px;
       margin-top: auto;
       letter-spacing: 0.5px;
+    }
+    .caption-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .views-pill {
+      font-size: 10px;
+      color: var(--text-muted);
+      opacity: 0.7;
     }
     .caption .action {
       color: #9da7b3;
       font-weight: 500;
     }
 
-    /* FULLSCREEN LIGHTBOX DLA POJEDYNCZEGO PROJEKTU */
+    /* FULLSCREEN LIGHTBOX */
     #modal {
       display: none;
       position: fixed;
@@ -221,6 +289,11 @@
     <div class="badge" id="badge-info">COLLECTIONS</div>
   </header>
 
+  <div class="filter-wrap" id="filters" style="display:none;">
+    <div class="filter-row" id="cat-row"></div>
+    <div class="filter-row sub-row" id="sub-row" style="display:none;"></div>
+  </div>
+
   <div class="grid" id="gallery"></div>
 
   <!-- Fullscreen Modal -->
@@ -237,25 +310,37 @@
 
   <script>
     /* ==============================================================
-       LISTA  PROJEKTÓW:
-       
-       nazwa folderu w nowej linijce poniżej!k
+       LISTA PROJEKTÓW I KATEGORII:
+       cat: 'SESSIONS' | 'CUSTOM VISUALS' | 'SHADERS'
+       sub: nazwa podgrupy dla SHADERS (np. 'FERROS', 'FLUX', 'VECTA', 'TICKER')
        ============================================================== */
     const PROJECTS = [
-      'Morphogenesis',
-      'LitoClast Sessions',
-      'FERROS_Vorago',
-      'FLUX_MyceliaTides',
-      'FLUX_Alumina',
-      'VECTA_BirthdayFun',
-      'FLUX_EchoShells',
-      'FLUX_Vessel',
-      'VECTA_DriftJammers',
-      'FERROS_SundayBlooms',
-      'TICKER_Polyhedrons',
-      // 'NOWY_PROJEKT', <-- takdodaje się kolejne
+      // PROJECTS & SESSIONS
+      { id: 'Morphogenesis',       cat: 'SESSIONS' },
+      { id: 'LitoClast Sessions',  cat: 'SESSIONS' },
+
+      // SHADERS — FERROS
+      { id: 'FERROS_Vorago',       cat: 'SHADERS', sub: 'FERROS' },
+      { id: 'FERROS_SundayBlooms', cat: 'SHADERS', sub: 'FERROS' },
+
+      // SHADERS — FLUX
+      { id: 'FLUX_MyceliaTides',   cat: 'SHADERS', sub: 'FLUX' },
+      { id: 'FLUX_Alumina',        cat: 'SHADERS', sub: 'FLUX' },
+      { id: 'FLUX_EchoShells',     cat: 'SHADERS', sub: 'FLUX' },
+      { id: 'FLUX_Vessel',         cat: 'SHADERS', sub: 'FLUX' },
+
+      // SHADERS — VECTA
+      { id: 'VECTA_BirthdayFun',   cat: 'SHADERS', sub: 'VECTA' },
+      { id: 'VECTA_DriftJammers',  cat: 'SHADERS', sub: 'VECTA' },
+
+      // SHADERS — TICKER
+      { id: 'TICKER_Polyhedrons',  cat: 'SHADERS', sub: 'TICKER' },
+
+      // CUSTOM VISUALS (dodawaj tu kolejne w przyszłości)
+      // { id: 'NAZWA_FOLDERU',    cat: 'CUSTOM VISUALS' },
     ];
 
+    const CATEGORIES = ['ALL', 'SESSIONS', 'CUSTOM VISUALS', 'SHADERS'];
     const EXTENSIONS = ['png', 'PNG', 'jpg', 'JPG', 'jpeg', 'webp', 'png.jpg', 'png.PNG', 'png.jpeg', 'PNG.jpg'];
 
     let basePath = window.location.pathname;
@@ -268,53 +353,146 @@
     const titleEl = document.getElementById('title');
     const badgeEl = document.getElementById('badge-info');
     const backNav = document.getElementById('back-nav');
+    const filtersWrap = document.getElementById('filters');
+    const catRow = document.getElementById('cat-row');
+    const subRow = document.getElementById('sub-row');
+
+    // Pomocnik do pobierania wyświetleń pojedynczego projektu z GoatCountera
+    function fetchProjectViews(projId, targetEl, suffix = ' VIEWS') {
+      const gcPath = `${basePath}?id=${projId.replace(/ /g, '+')}`;
+      fetch(`https://otwaves.goatcounter.com/counter/${encodeURIComponent(gcPath)}.json`)
+        .then(r => r.ok ? r.json() : null)
+        .then(d => {
+          if (d && d.count) targetEl.textContent = d.count + suffix;
+        })
+        .catch(() => {});
+    }
 
     // -------------------------------------------------------------
-    // TRYB 1: KATALOG GŁÓWNY (gdy URL to czysty: otwaves.github.io/Gallery/)
+    // TRYB 1: KATALOG GŁÓWNY Z KATEGORIAMI
     // -------------------------------------------------------------
     if (!sessionID) {
       titleEl.innerText = `[ØT\\W] // PROJECTS ARCHIVE`;
-      badgeEl.innerText = `${PROJECTS.length} COLLECTIONS`;
       backNav.style.display = 'none';
+      filtersWrap.style.display = 'flex';
 
-      PROJECTS.forEach(projId => {
-        const card = document.createElement('a');
-        card.className = 'card';
-        card.href = `${basePath}?id=${projId}`;
+      let activeCat = 'ALL';
+      let activeSub = 'ALL';
 
-        const imgWrap = document.createElement('div');
-        imgWrap.className = 'img-wrap';
+      function getShaderSubs() {
+        const subs = new Set();
+        PROJECTS.forEach(p => { if (p.cat === 'SHADERS' && p.sub) subs.add(p.sub); });
+        return ['ALL', ...Array.from(subs)];
+      }
 
-        const img = document.createElement('img');
-        img.className = 'thumb';
-        img.alt = projId;
-        img.loading = 'lazy';
+      function renderFilters() {
+        catRow.innerHTML = '';
+        CATEGORIES.forEach(cat => {
+          const btn = document.createElement('button');
+          btn.className = 'filter-btn' + (activeCat === cat ? ' active' : '');
+          btn.textContent = cat;
+          btn.onclick = () => {
+            activeCat = cat;
+            activeSub = 'ALL';
+            renderFilters();
+            renderGrid();
+          };
+          catRow.appendChild(btn);
+        });
 
-        // Ładuje miniaturę (still_01 z danego folderu)
-        let extIdx = 0;
-        function tryNextThumb() {
-          if (extIdx < EXTENSIONS.length) {
-            img.src = `${basePath}${projId}/still_01.${EXTENSIONS[extIdx]}`;
-            extIdx++;
-          }
+        if (activeCat === 'SHADERS') {
+          subRow.style.display = 'flex';
+          subRow.innerHTML = '';
+          getShaderSubs().forEach(sub => {
+            const btn = document.createElement('button');
+            btn.className = 'filter-btn' + (activeSub === sub ? ' active' : '');
+            btn.textContent = sub === 'ALL' ? 'ALL SHADERS' : sub;
+            btn.onclick = () => {
+              activeSub = sub;
+              renderFilters();
+              renderGrid();
+            };
+            subRow.appendChild(btn);
+          });
+        } else {
+          subRow.style.display = 'none';
         }
-        img.onerror = tryNextThumb;
-        tryNextThumb();
+      }
 
-        const watermark = document.createElement('div');
-        watermark.className = 'watermark-tag';
-        watermark.innerText = '[ØT\\W]';
+      function renderGrid() {
+        gallery.innerHTML = '';
+        const list = PROJECTS.filter(p => {
+          if (activeCat !== 'ALL' && p.cat !== activeCat) return false;
+          if (activeCat === 'SHADERS' && activeSub !== 'ALL' && p.sub !== activeSub) return false;
+          return true;
+        });
 
-        const caption = document.createElement('div');
-        caption.className = 'caption';
-        caption.innerHTML = `<span>${projId.replace(/_/g, ' ')}</span><span class="action">ENTER [→]</span>`;
+        badgeEl.innerText = `${list.length} COLLECTIONS`;
 
-        imgWrap.appendChild(img);
-        imgWrap.appendChild(watermark);
-        card.appendChild(imgWrap);
-        card.appendChild(caption);
-        gallery.appendChild(card);
-      });
+        list.forEach(proj => {
+          const card = document.createElement('a');
+          card.className = 'card';
+          card.href = `${basePath}?id=${encodeURIComponent(proj.id)}`;
+
+          const imgWrap = document.createElement('div');
+          imgWrap.className = 'img-wrap';
+
+          const img = document.createElement('img');
+          img.className = 'thumb';
+          img.alt = proj.id;
+          img.loading = 'lazy';
+
+          let extIdx = 0;
+          function tryNextThumb() {
+            if (extIdx < EXTENSIONS.length) {
+              img.src = `${basePath}${proj.id}/still_01.${EXTENSIONS[extIdx]}`;
+              extIdx++;
+            }
+          }
+          img.onerror = tryNextThumb;
+          tryNextThumb();
+
+          const catTag = document.createElement('div');
+          catTag.className = 'cat-tag';
+          catTag.innerText = proj.sub ? `${proj.cat} // ${proj.sub}` : proj.cat;
+
+          const watermark = document.createElement('div');
+          watermark.className = 'watermark-tag';
+          watermark.innerText = '[ØT\\W]';
+
+          const caption = document.createElement('div');
+          caption.className = 'caption';
+
+          const nameSpan = document.createElement('span');
+          nameSpan.textContent = proj.id.replace(/_/g, ' ');
+
+          const rightWrap = document.createElement('span');
+          rightWrap.className = 'caption-right';
+
+          const viewsSpan = document.createElement('span');
+          viewsSpan.className = 'views-pill';
+          fetchProjectViews(proj.id, viewsSpan, 'V');
+
+          const actionSpan = document.createElement('span');
+          actionSpan.className = 'action';
+          actionSpan.textContent = 'ENTER [→]';
+
+          rightWrap.appendChild(viewsSpan);
+          rightWrap.appendChild(actionSpan);
+          caption.appendChild(nameSpan);
+          caption.appendChild(rightWrap);
+
+          imgWrap.appendChild(img);
+          imgWrap.appendChild(catTag);
+          imgWrap.appendChild(watermark);
+          card.appendChild(imgWrap);
+          card.appendChild(caption);
+          gallery.appendChild(card);
+        });
+      }
+
+      renderFilters();
+      renderGrid();
 
     // -------------------------------------------------------------
     // TRYB 2: WIDOK POJEDYNCZEGO PROJEKTU (?id=NAZWA_PROJEKTU)
@@ -322,6 +500,7 @@
     } else {
       titleEl.innerText = `[ØT\\W] // ${sessionID.replace(/_/g, ' ')}`;
       badgeEl.innerText = `FULL RES ARCHIVE`;
+      fetchProjectViews(sessionID, badgeEl, ' VIEWS');
       backNav.style.display = 'inline-block';
       backNav.href = basePath;
 
@@ -445,10 +624,11 @@
       }, { passive: true });
     }
   </script>
+
   <script data-goatcounter="https://otwaves.goatcounter.com/count"
           async src="//gc.zgo.at/count.js"></script>
 
-    <div id="otw-views"
+  <div id="otw-views"
        style="margin-top:32px; font-size:11px; color:var(--text-muted); letter-spacing:1.5px; opacity:0.5;"></div>
   <script>
     if (new URLSearchParams(location.search).get('admin') === '1') {
