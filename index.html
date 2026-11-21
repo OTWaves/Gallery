@@ -448,12 +448,24 @@
   <script data-goatcounter="https://otwaves.goatcounter.com/count"
           async src="//gc.zgo.at/count.js"></script>
 
-  <a id="otw-views" href="https://otwaves.goatcounter.com" target="_blank"
-     style="margin-top:32px; font-size:11px; color:var(--text-muted); text-decoration:none; letter-spacing:1.5px; opacity:0.5;"></a>
+    <div id="otw-views"
+       style="margin-top:32px; font-size:11px; color:var(--text-muted); letter-spacing:1.5px; opacity:0.5;"></div>
   <script>
+    if (new URLSearchParams(location.search).get('admin') === '1') {
+      localStorage.setItem('otw_admin', '1');
+    }
+    const isAdmin = localStorage.getItem('otw_admin') === '1';
+
     fetch('https://otwaves.goatcounter.com/counter/TOTAL.json')
       .then(r => r.json())
-      .then(d => document.getElementById('otw-views').textContent = 'VIEWS // ' + d.count);
+      .then(d => {
+        const el = document.getElementById('otw-views');
+        if (isAdmin) {
+          el.innerHTML = `<a href="https://otwaves.goatcounter.com" target="_blank" style="color:inherit; text-decoration:none;">VIEWS // ${d.count} [DASHBOARD]</a>`;
+        } else {
+          el.textContent = 'VIEWS // ' + d.count;
+        }
+      });
   </script>
 </body>
 </html>
